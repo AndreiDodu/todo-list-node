@@ -1,3 +1,3 @@
-# todo-list-test-node
+# todo-list-node
 
 node, express and mongo
