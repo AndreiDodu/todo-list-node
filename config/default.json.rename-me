@@ -1,0 +1,5 @@
+{
+    "dbUri": "PUT_HERE_YOUR_CONNECTION_MONGODB_URI",
+    "serverPort": "3001",
+    "jwtSecret": "Ciao mondo!"
+}

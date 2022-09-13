@@ -40,7 +40,7 @@ router.delete("/:id", (req, res) => {
         res.json({ message: e });
     });
 });
-/*
+
 router.put("/:id", (req, res) => {
     Todo.updateOne({ _id: req.params.id }, { $set: { value: req.body.value } }).then(data => {
         res.json(data);
@@ -48,6 +48,6 @@ router.put("/:id", (req, res) => {
         res.json({ message: e });
     });
 });
-*/
+
 
 module.exports = router;
