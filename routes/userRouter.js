@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 const gravatar = require('gravatar');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
 router.post(
   '/',
@@ -79,5 +80,73 @@ router.post(
     );
   }
 );
+
+router.post(
+  '/login',
+  [
+    check('username', 'The username must not be empty').not().isEmpty(),
+    check('password', 'Password must not be empty').not().isEmpty(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { username, password } = req.body;
+
+    let user = null;
+    try {
+      user = await User.findOne({ username });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'Wrong username or password' }] });
+      }
+    } catch (err) {
+      return res.status(500).json({ errors: [{ msg: err.message }] });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ errors: [{ msg: 'Wrong username or password' }] });
+    }
+
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      config.get('jwtSecret'),
+      { expiresIn: 360000 },
+      (err, token) => {
+        if (err) {
+          return res.status(500).json({
+            errors: [{ msg: 'Internal server error: ' + err.message }],
+          });
+        }
+        return res.json({ jwt: token });
+      }
+    );
+  }
+);
+
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.user.username }).select(
+      '-password'
+    );
+    res.json(user);
+  } catch (err) {
+    return res.status(500).json({
+      errors: [{ msg: 'Interbal server error: ' + err.message }],
+    });
+  }
+});
 
 module.exports = router;
